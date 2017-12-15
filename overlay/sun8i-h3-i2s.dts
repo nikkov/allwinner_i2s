@@ -1,0 +1,80 @@
+// Definitions for G-Dis DAC
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "allwinner,sun8i-h3";
+
+	fragment@0 {
+		target = <&i2s0>;
+		__overlay__ {
+			pinctrl-0 = <&i2s0_pins>;
+			pinctrl-names = "default";
+			wssoverride;
+			status = "okay";
+		};
+	};
+
+	fragment@1 {
+		target = <&i2c1>;
+		__overlay__ {
+			/* no I2C1 for I2S0 */
+			status = "disabled";
+		};
+	};
+
+	fragment@2 {
+		target = <&uart1>;
+		__overlay__ {
+			/* pins "PG6", "PG7" used for clock's control */
+			status = "disabled";
+		};
+	};
+
+	fragment@3 {
+		target = <&pio>;
+		__overlay__ {
+			spi0_cs_pins: spi0_cs_pins {
+				/* we take one pin ("PA6") from CS1 in original device tree to clock's control */
+				pins = "PC3";
+				function = "gpio_out";
+			};
+			i2sclk_pins: i2sclk_pins {
+				pins = "PA6", "PG6", "PG7";
+				function = "gpio_out";
+			};
+		};
+	};
+
+	fragment@4 {
+		target-path = "/";
+		__overlay__ {
+			i2s0_out: i2s0-clock {
+				#sound-dai-cells = <0>;
+				compatible = "custom,i2s_clock_board";
+				pinctrl-names = "default";
+				pinctrl-0 = <&i2sclk_pins>;
+				clk-gpios = <&pio 0 6 1>, <&pio 6 6 1>, <&pio 6 7 1>;
+				status = "okay";
+			};
+
+			sound_i2s {
+				simple-audio-card,name = "G-Dis DAC";
+				compatible = "simple-audio-card";
+				simple-audio-card,format = "i2s";
+				simple-audio-card,bitclock-master = <&codec_dai>; 
+				simple-audio-card,frame-master = <&codec_dai>; 
+				simple-audio-card,mclk-fs = <128>;
+				status = "okay";
+
+				simple-audio-card,cpu {
+					sound-dai = <&i2s0>;
+				};
+
+				codec_dai: simple-audio-card,codec {
+					sound-dai = <&i2s0_out>;
+				};
+			};
+		};
+	};
+};
