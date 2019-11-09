@@ -22,7 +22,7 @@
 #include <sound/soc.h>
 
 #if (1)
-#define DBGOUT(msg...)		do { printk(KERN_ERR msg); } while (0)
+#define DBGOUT(msg...)		do { printk(msg); } while (0)
 #else
 #define DBGOUT(msg...)		do {} while (0)
 #endif
@@ -32,35 +32,34 @@ struct i2s_clock_board_priv {
 	unsigned long clk_gpios[3];
 };
 
-static int i2s_clock_board_soc_probe(struct snd_soc_codec *codec)
+static int i2s_clock_board_soc_probe(struct snd_soc_component *component)
 {
-	struct i2s_clock_board_priv *priv = snd_soc_codec_get_drvdata(codec);
+	struct i2s_clock_board_priv *priv = snd_soc_component_get_drvdata(component);
 	DBGOUT("i2s_clock_board: %s\n", __func__);
 	return 0;
 }
 
-static int i2s_clock_board_soc_remove(struct snd_soc_codec *codec)
+static void i2s_clock_board_soc_remove(struct snd_soc_component *component)
 {
-	struct i2s_clock_board_priv *priv = snd_soc_codec_get_drvdata(codec);
+	struct i2s_clock_board_priv *priv = snd_soc_component_get_drvdata(component);
+	DBGOUT("i2s_clock_board: %s\n", __func__);
+}
+
+static int i2s_clock_board_soc_suspend(struct snd_soc_component *component)
+{
+	struct i2s_clock_board_priv *priv = snd_soc_component_get_drvdata(component);
 	DBGOUT("i2s_clock_board: %s\n", __func__);
 	return 0;
 }
 
-static int i2s_clock_board_soc_suspend(struct snd_soc_codec *codec)
+static int i2s_clock_board_soc_resume(struct snd_soc_component *component)
 {
-	struct i2s_clock_board_priv *priv = snd_soc_codec_get_drvdata(codec);
+	struct i2s_clock_board_priv *priv = snd_soc_component_get_drvdata(component);
 	DBGOUT("i2s_clock_board: %s\n", __func__);
 	return 0;
 }
 
-static int i2s_clock_board_soc_resume(struct snd_soc_codec *codec)
-{
-	struct i2s_clock_board_priv *priv = snd_soc_codec_get_drvdata(codec);
-	DBGOUT("i2s_clock_board: %s\n", __func__);
-	return 0;
-}
-
-static const struct snd_soc_codec_driver soc_codec_i2s_clock_board = {
+static const struct snd_soc_component_driver soc_codec_i2s_clock_board = {
 	.probe = i2s_clock_board_soc_probe,
 	.remove = i2s_clock_board_soc_remove,
 	.suspend = i2s_clock_board_soc_suspend,
@@ -70,7 +69,7 @@ static const struct snd_soc_codec_driver soc_codec_i2s_clock_board = {
 static int i2s_clock_board_set_dai_fmt(struct snd_soc_dai *codec_dai,
 			      unsigned int format)
 {
-	struct snd_soc_codec *codec = codec_dai->codec;
+	struct snd_soc_component *component = codec_dai->component;
 	DBGOUT("i2s_clock_board: %s\n", __func__);
 	return 0;
 }
@@ -105,9 +104,9 @@ static int set_clock(struct i2s_clock_board_priv *priv, unsigned long rate)
 			return ENOENT;
 	}
 
-	DBGOUT("%s: clk_gpios[%d] = %d\n", __func__, priv->clk_gpios[0], clk_family);
-	DBGOUT("%s: clk_gpios[%d] = %d\n", __func__, priv->clk_gpios[1], div_tb[0]);
-	DBGOUT("%s: clk_gpios[%d] = %d\n", __func__, priv->clk_gpios[2], div_tb[1]);
+	DBGOUT("%s: clk_gpios[%lu] = %d\n", __func__, priv->clk_gpios[0], clk_family);
+	DBGOUT("%s: clk_gpios[%lu] = %d\n", __func__, priv->clk_gpios[1], div_tb[0]);
+	DBGOUT("%s: clk_gpios[%lu] = %d\n", __func__, priv->clk_gpios[2], div_tb[1]);
 
 	gpio_set_value(priv->clk_gpios[0], clk_family);
 	gpio_set_value(priv->clk_gpios[1], div_tb[0]);
@@ -125,8 +124,8 @@ static int i2s_clock_board_hw_params(struct snd_pcm_substream *substream,
 			    struct snd_pcm_hw_params *params,
 			    struct snd_soc_dai *dai)
 {
-	struct snd_soc_codec *codec = dai->codec;
-	struct i2s_clock_board_priv *priv = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *component = dai->component;
+	struct i2s_clock_board_priv *priv = snd_soc_component_get_drvdata(component);
 	DBGOUT("i2s_clock_board: %s, physical_width=%d, rate=%d, width=%d\n", __func__, 
 		(int)params_physical_width(params),
 		(int)params_rate(params),
@@ -138,8 +137,8 @@ static int i2s_clock_board_hw_params(struct snd_pcm_substream *substream,
 static int i2s_clock_board_hw_free(struct snd_pcm_substream *substream,
 			  struct snd_soc_dai *dai)
 {
-	struct snd_soc_codec *codec = dai->codec;
-	struct i2s_clock_board_priv *priv = snd_soc_codec_get_drvdata(codec);
+	struct snd_soc_component *component = dai->component;
+	struct i2s_clock_board_priv *priv = snd_soc_component_get_drvdata(component);
 	DBGOUT("i2s_clock_board: %s\n", __func__);
 	return 0;
 }
@@ -161,14 +160,14 @@ static struct snd_soc_dai_driver i2s_clock_board_dai = {
 		.channels_min	= 2,
 		.channels_max	= 2,
 		.rates		= SNDRV_PCM_RATE_44100_192000,
-		.formats	= SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S24_LE,
+		.formats	= SNDRV_PCM_FMTBIT_S24_LE,
 	},
 	.capture = {
 		.stream_name	= "Capture",
 		.channels_min	= 2,
 		.channels_max	= 2,
 		.rates		= SNDRV_PCM_RATE_44100_192000,
-		.formats	= SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S24_LE,
+		.formats	= SNDRV_PCM_FMTBIT_S24_LE,
 	},
 	.ops	= &i2s_clock_board_dai_ops,
 };
@@ -200,13 +199,13 @@ static int i2s_clock_board_probe(struct platform_device *pdev)
 		priv->clk_gpios[i] = ret;
 		DBGOUT("%s: priv->clk_gpios[%d] = %d\n", __func__, i, ret);
 	}		
-	return snd_soc_register_codec(dev, &soc_codec_i2s_clock_board,
+	return snd_soc_register_component(dev, &soc_codec_i2s_clock_board,
 				      &i2s_clock_board_dai, 1);
 }
 
 static int i2s_clock_board_remove(struct platform_device *pdev)
 {
-	snd_soc_unregister_codec(&pdev->dev);
+	snd_soc_unregister_component(&pdev->dev);
 	return 0;
 }
 
