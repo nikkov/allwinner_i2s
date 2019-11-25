@@ -10,7 +10,6 @@
 		__overlay__ {
 			pinctrl-0 = <&i2s0_pins>;
 			pinctrl-names = "default";
-			wssoverride;
 			status = "okay";
 		};
 	};
@@ -59,7 +58,7 @@
 			};
 
 			sound_i2s {
-				simple-audio-card,name = "G-Dis DAC";
+				simple-audio-card,name = "External DAC";
 				compatible = "simple-audio-card";
 				simple-audio-card,format = "i2s";
 				simple-audio-card,bitclock-master = <&codec_dai>; 
@@ -69,6 +68,8 @@
 
 				simple-audio-card,cpu {
 					sound-dai = <&i2s0>;
+					dai-tdm-slot-num = <2>;
+					dai-tdm-slot-width = <32>;
 				};
 
 				codec_dai: simple-audio-card,codec {

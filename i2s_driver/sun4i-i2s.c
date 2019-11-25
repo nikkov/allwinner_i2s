@@ -233,6 +233,7 @@ static const struct sun4i_i2s_clk_div sun4i_i2s_bclk_div[] = {
 };
 
 static const struct sun4i_i2s_clk_div sun4i_i2s_mclk_div[] = {
+	{ .div = 0, .val = 0 },
 	{ .div = 1, .val = 0 },
 	{ .div = 2, .val = 1 },
 	{ .div = 4, .val = 2 },
@@ -314,7 +315,7 @@ static int sun4i_i2s_get_mclk_div(struct sun4i_i2s *i2s,
 	return -EINVAL;
 }
 
-static int sun4i_i2s_oversample_rates[] = { 128, 192, 256, 384, 512, 768 };
+static int sun4i_i2s_oversample_rates[] = { 64, 128, 192, 256, 384, 512, 768 };
 static bool sun4i_i2s_oversample_is_valid(unsigned int oversample)
 {
 	int i;
@@ -347,6 +348,7 @@ static int sun4i_i2s_set_clk_rate(struct snd_soc_dai *dai,
 		clk_rate = 22579200;
 		break;
 
+	case 384000:
 	case 192000:
 	case 128000:
 	case 96000:
@@ -1223,7 +1225,9 @@ static struct snd_soc_dai_driver sun4i_i2s_dai = {
 		.stream_name = "Playback",
 		.channels_min = 1,
 		.channels_max = 8,
-		.rates = SNDRV_PCM_RATE_8000_192000,
+		.rates = SNDRV_PCM_RATE_8000_192000 | SNDRV_PCM_RATE_KNOT,
+		.rate_min = 8000,
+		.rate_max = 384000,
 		.formats = SUN4I_FORMATS,
 	},
 	.ops = &sun4i_i2s_dai_ops,

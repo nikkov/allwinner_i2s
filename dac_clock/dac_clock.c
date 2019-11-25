@@ -100,6 +100,10 @@ static int set_clock(struct i2s_clock_board_priv *priv, unsigned long rate)
 			div_tb[0] = 0;
 			div_tb[1] = 0;
 			break;
+		case 384000:
+			div_tb[0] = 0;
+			div_tb[1] = 1;
+			break;
 		default:
 			return ENOENT;
 	}
@@ -159,7 +163,9 @@ static struct snd_soc_dai_driver i2s_clock_board_dai = {
 		.stream_name	= "Playback",
 		.channels_min	= 2,
 		.channels_max	= 2,
-		.rates		= SNDRV_PCM_RATE_44100_192000,
+		.rates		= SNDRV_PCM_RATE_44100_192000 | SNDRV_PCM_RATE_KNOT,
+		.rate_min = 8000,
+		.rate_max = 384000,
 		.formats	= SNDRV_PCM_FMTBIT_S24_LE,
 	},
 	.capture = {
