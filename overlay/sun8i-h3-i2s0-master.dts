@@ -31,7 +31,7 @@
 			sound_i2s {
 				compatible = "simple-audio-card";
 				simple-audio-card,name = "I2S-master";
-				simple-audio-card,mclk-fs = <256>;
+				simple-audio-card,mclk-fs = <128>;
 				simple-audio-card,format = "i2s";
 		                status = "okay";
 
